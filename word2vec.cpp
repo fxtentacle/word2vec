@@ -11,12 +11,7 @@
 //  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <pthread.h>
+#include "stdafx.h"
 
 #define MAX_STRING 100
 #define EXP_TABLE_SIZE 1000
@@ -71,7 +66,7 @@ void InitUnigramTable() {
 void ReadWord(char *word, FILE *fin, char *eof) {
   int a = 0, ch;
   while (1) {
-    ch = fgetc_unlocked(fin);
+    ch = fgetc(fin);
     if (ch == EOF) {
       *eof = 1;
       break;
@@ -371,7 +366,7 @@ void InitNet() {
   CreateBinaryTree();
 }
 
-void *TrainModelThread(void *id) {
+void TrainModelThread(void *id) {
   long long a, b, d, cw, word, last_word, sentence_length = 0, sentence_position = 0;
   long long word_count = 0, last_word_count = 0, sen[MAX_SENTENCE_LENGTH + 1];
   long long l1, l2, c, target, label, local_iter = iter;
@@ -551,13 +546,11 @@ void *TrainModelThread(void *id) {
   fclose(fi);
   free(neu1);
   free(neu1e);
-  pthread_exit(NULL);
 }
 
 void TrainModel() {
   long a, b, c, d;
   FILE *fo;
-  pthread_t *pt = (pthread_t *)malloc(num_threads * sizeof(pthread_t));
   printf("Starting training using file %s\n", train_file);
   starting_alpha = alpha;
   if (read_vocab_file[0] != 0) ReadVocab(); else LearnVocabFromTrainFile();
@@ -566,8 +559,8 @@ void TrainModel() {
   InitNet();
   if (negative > 0) InitUnigramTable();
   start = clock();
-  for (a = 0; a < num_threads; a++) pthread_create(&pt[a], NULL, TrainModelThread, (void *)a);
-  for (a = 0; a < num_threads; a++) pthread_join(pt[a], NULL);
+#pragma omp parallel for
+  for (a = 0; a < num_threads; a++) TrainModelThread((void *)a);
   fo = fopen(output_file, "wb");
   if (classes == 0) {
     // Save the word vectors
