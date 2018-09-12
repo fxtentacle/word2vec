@@ -15,6 +15,9 @@
 #include <string.h>
 #include <math.h>
 #include <thread>
+#include <fcntl.h>
+#include <io.h>
+#include <stdio.h>
 
 #define posix_memalign(p, a, s) (((*(p)) = _aligned_malloc((s), (a))), *(p) ?0 :errno)
 
