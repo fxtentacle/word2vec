@@ -1,0 +1,23 @@
+find ./articles-vn -print0 | xargs -0 -I file cat file > text-vn-utf16.txt
+
+import codecs
+f=codecs.open('text-vn-utf16.txt', encoding='utf-16')
+lines = [l for l in f]
+len(lines)
+allstr = '\n'.join(lines)
+allstr = allstr.replace(',',' ')
+allstr = allstr.replace('.', ' ')
+allstr = allstr.replace('(', ' ')
+allstr = allstr.replace(')', ' ')
+allstr = allstr.replace('/', ' ')
+allstr = allstr.replace('#', ' ')
+allstr = allstr.replace(';', ' ')
+allstr = allstr.replace('?', ' ')
+allstr = allstr.replace(':', ' ')
+f = codecs.open('text-vn-utf8.txt',encoding='utf-8',mode='w')
+f.write(allstr)
+f.close()
+
+uvconv.exe text-vn-utf8.txt -f UTF8 -t VIQR -o text-vn-viqr.txt
+
+tr A-Z a-z < text-vn-viqr.txt > text-vn.txt
